@@ -19,12 +19,12 @@ class Deflection(Observable):
     signal.
     """
 
-    __slots__ = ('level', )
+    __slots__ = ('level',)
 
     def __init__(self):
         """Creates a new Deflection instance, at level 0"""
         super(Deflection, self).__init__()
-        #The single reference will correspond to the start variable
+        # The single reference will correspond to the start variable
         self.time = self.start
         self.level = {}
 
@@ -32,10 +32,11 @@ class Deflection(Observable):
         """
         Obtains the representation of the observable as a character string.
         """
-        level = '-' if not self.level else min(self.level.itervalues())
-        lead = '-' if not self.level else min(self.level, key= self.level.get)
+        level = '-' if not self.level else min(self.level.values())
+        lead = '-' if not self.level else min(self.level, key=self.level.get)
         return '{0} ({1}, {2})'.format(super(Deflection, self).__str__(),
-                                                                  level, lead)
+                                       level, lead)
+
 
 class RDeflection(Deflection):
     """
@@ -44,10 +45,10 @@ class RDeflection(Deflection):
     any external QRS detection algorithm
     """
 
-    __slots__ = ('tag', )
+    __slots__ = ('tag',)
 
     def __init__(self):
         """Creates a new instance of a R-Deflection, that is instantaneous"""
         super(RDeflection, self).__init__()
-        #Beat annotations are instantaneous observables.
+        # Beat annotations are instantaneous observables.
         self.end = self.start

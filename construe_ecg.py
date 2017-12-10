@@ -22,14 +22,14 @@ if __name__ == '__main__':
     from construe.utils.units_helper import set_ADCGain, set_sampling_freq
 
     parser = argparse.ArgumentParser(description=
-        'Interprets a MIT-BIH ECG record in multiple abstraction levels, '
-        'generating as a result a set of annotations encoding the observation '
-        'hypotheses.')
+                                     'Interprets a MIT-BIH ECG record in multiple abstraction levels, '
+                                     'generating as a result a set of annotations encoding the observation '
+                                     'hypotheses.')
     parser.add_argument('-r', metavar='record', required=True,
                         help='Name of the record to be processed')
     parser.add_argument('-a', metavar='ann', default=None,
                         help=('Annotator containing the initial evidence. If '
-                               'not provided, the gqrs application is used.'))
+                              'not provided, the gqrs application is used.'))
     parser.add_argument('-o', metavar='oann', default='iqrs',
                         help=('Save annotations as annotator oann '
                               '(default: iqrs)'))
@@ -111,16 +111,16 @@ if __name__ == '__main__':
                               'abstraction level is "conduction", this '
                               'parameter is ignored.'))
     args = parser.parse_args()
-    #The first step is to set the global frequency and ADC gain variables that
-    #determine the constant values in the knowledge base, which are initialized
-    #in the first import of a construe knowledge module.
+    # The first step is to set the global frequency and ADC gain variables that
+    # determine the constant values in the knowledge base, which are initialized
+    # in the first import of a construe knowledge module.
     set_ADCGain(get_gain(args.r))
     set_sampling_freq(get_sampling_frequency(args.r))
-    #The initial evidence is now obtained
+    # The initial evidence is now obtained
     if args.a is None:
-        #A temporary annotations file with the 'gqrs' application is created,
-        #loaded and immediately removed. We ensure that no collisions occur
-        #with other annotators.
+        # A temporary annotations file with the 'gqrs' application is created,
+        # loaded and immediately removed. We ensure that no collisions occur
+        # with other annotators.
         aname = 0
         gqname = 'gq{0:02d}'
         rname, ext = os.path.splitext(args.r)
@@ -135,17 +135,19 @@ if __name__ == '__main__':
         rname, ext = os.path.splitext(args.r)
         annots = read_annotations(rname + '.' + args.a)
     t0 = time.time()
-    #Conduction or rhythm interpretation
+    # Conduction or rhythm interpretation
     if args.level == 'conduction':
         from record_processing import process_record_conduction
+
         length = 512000 if args.l == 0 else args.l
         result = process_record_conduction(rname, annots, length, args.f,
                                            args.t, args.exclude_pwaves,
                                            args.exclude_twaves, args.v)
     else:
         from record_processing import process_record_rhythm
-        #Merge strategy
+        # Merge strategy
         import construe.inference.reasoning as reasoning
+
         reasoning.MERGE_STRATEGY = not args.no_merge
         length = 23040 if args.l == 0 else args.l
         overl = 1080 if args.overl == -1 else args.overl
@@ -159,13 +161,15 @@ if __name__ == '__main__':
                                        args.t, args.exclude_pwaves,
                                        args.exclude_twaves, args.v)
     save_annotations(result, args.r + '.' + args.o)
-    print('Record ' + args.r + ' succesfully processed')
+    print(('Record ' + args.r + ' succesfully processed'))
     if args.v:
         from construe.model.interpretation import Interpretation
         from construe.utils.units_helper import samples2msec as sp2ms
         import construe.acquisition.record_acquisition as IN
+
         idur = time.time() - t0
-        print('Interpretation time: {0:.03f} seconds. Global Real-time factor: '
-              '{1:.03f}. Created {2} interpretations.'.format(idur,
-              sp2ms(min(args.t, IN.get_record_length())-args.f)/(idur*1000.),
-              Interpretation.counter))
+        print(('Interpretation time: {0:.03f} seconds. Global Real-time factor: '
+               '{1:.03f}. Created {2} interpretations.'.format(idur,
+                                                               sp2ms(min(args.t, IN.get_record_length()) - args.f) / (
+                                                               idur * 1000.),
+                                                               Interpretation.counter)))

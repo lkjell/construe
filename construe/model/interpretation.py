@@ -21,6 +21,7 @@ import copy
 import numpy as np
 from collections import deque, namedtuple as nt
 
+
 ##################################################
 ## Utility functions to detect merge situations ##
 ##################################################
@@ -37,6 +38,7 @@ def _pat_mergeable(p1, p2):
     return (p1.automata is p2.automata and p1.istate == p2.istate
             and p1.fstate == p2.fstate)
 
+
 def _focus_mergeable(f1, f2):
     """
     Compare two focuses of attention for equality regarding an interpretation
@@ -45,7 +47,7 @@ def _focus_mergeable(f1, f2):
     """
     return all(f1._lst[i][0] == f2._lst[i][0]
                and _pat_mergeable(f1._lst[i][1], f2._lst[i][1])
-                                       for i in xrange(len(f1._lst)-1, -1, -1))
+               for i in range(len(f1._lst) - 1, -1, -1))
 
 
 class PastMetrics(nt('PastMetrics', 'time, abst, abstime, nhyp')):
@@ -75,7 +77,7 @@ class PastMetrics(nt('PastMetrics', 'time, abst, abstime, nhyp')):
         patch:
             Array, list or tuple with exactly three numerical values.
         """
-        return PastMetrics(self.time, *np.array(self[1:]+patch))
+        return PastMetrics(self.time, *np.array(self[1:] + patch))
 
 
 class Focus(object):
@@ -111,7 +113,7 @@ class Focus(object):
     def __contains__(self, key):
         return any(key is v for v, _ in self._lst)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self._lst)
 
     def push(self, obs, pattern):
@@ -162,9 +164,9 @@ class Focus(object):
         the observation is fully observed, or None if the observation will
         not be matched with a finding.
         """
-        for i in xrange(len(self._lst)-1, 0, -1):
+        for i in range(len(self._lst) - 1, 0, -1):
             if self._lst[i][0] is observation:
-                f, p = self._lst[i-1]
+                f, p = self._lst[i - 1]
                 if p is not None and f is p.finding:
                     return f
                 break
@@ -180,15 +182,14 @@ class Focus(object):
         f, pat = self._lst[-1]
         assert finding is f
         verify(obs not in pat.evidence[pat.get_evidence_type(f)[0]],
-                  'Observation {0} is already in the evidence of {1} pattern',
-                                                                    (obs, pat))
+               'Observation {0} is already in the evidence of {1} pattern',
+               (obs, pat))
         patcp = copy.copy(pat)
         patcp.match(f, obs)
-        #The hypothesis generating the finding is updated
+        # The hypothesis generating the finding is updated
         self._lst[-2] = (patcp.hypothesis, patcp)
-        #And the matched finding removed from the focus
+        # And the matched finding removed from the focus
         del self._lst[-1]
-
 
 
 class Interpretation(object):
@@ -299,15 +300,15 @@ class Interpretation(object):
         both as hypothesis and as evidence of different patterns.
         """
         types = {type(obs)}.union({p.get_evidence_type(obs)[0]
-                                                for p in self.pat_map[obs][1]})
+                                   for p in self.pat_map[obs][1]})
         dmatch = self.get_delayed_finding(obs)
         if dmatch is not None:
             types = types.union({type(dmatch)}, {p.get_evidence_type(dmatch)[0]
-                                             for p in self.pat_map[dmatch][1]})
+                                                 for p in self.pat_map[dmatch][1]})
         return tuple(types)
 
     def _get_proper_obs(self, clazz=Observable, start=0, end=np.inf,
-                                         filt=lambda obs: True, reverse=False):
+                        filt=lambda obs: True, reverse=False):
         """
         Obtains a list of observations matching the search criteria, ordered
         by the earliest time of the observation.
@@ -353,7 +354,7 @@ class Interpretation(object):
         set of evidence to support their hypothesis.
         """
         return all(p is None or p.sufficient_evidence
-                                                  for p in self.focus.patterns)
+                   for p in self.focus.patterns)
 
     @property
     def time_point(self):
@@ -367,7 +368,7 @@ class Interpretation(object):
         lastfocus = max(0, (self.focus.top[0].earlystart - 1 if self.focus
                             else next(self.get_observations()).earlystart - 1))
         return (max(self.abstracted[-1].lateend, lastfocus)
-                                             if self.abstracted else lastfocus)
+                if self.abstracted else lastfocus)
 
     @property
     def parent(self):
@@ -419,11 +420,11 @@ class Interpretation(object):
                 and self.singletons == other.singletons
                 and _focus_mergeable(self.focus, other.focus)
                 and all(self.unintelligible[i] == other.unintelligible[i]
-                        for i in xrange(nunint-1, -1, -1))
+                        for i in range(nunint - 1, -1, -1))
                 and all(self.abstracted[i] == other.abstracted[i]
-                        for i in xrange(nabs-1, -1, -1))
+                        for i in range(nabs - 1, -1, -1))
                 and all(self.observations[i] == other.observations[i]
-                        for i in xrange(nobs-1, -1, -1)))
+                        for i in range(nobs - 1, -1, -1)))
 
     def is_ancestor(self, interpretation):
         """
@@ -449,7 +450,7 @@ class Interpretation(object):
         excluded = ap.get_excluded(type(obs))
         other = obsbuf.find_overlapping(obs, excluded)
         verify(other is None,
-              'Exclusion relation violation between {0} and {1}', (other, obs))
+               'Exclusion relation violation between {0} and {1}', (other, obs))
         dummy = EventObservable()
         dummy.end.value = Iv(obs.latestart, obs.latestart)
         idx = self.observations.bisect_right(dummy)
@@ -468,10 +469,10 @@ class Interpretation(object):
         """
         idx = self.observations.bisect_left(obs)
         for obs2 in (o for o in self.observations[idx:] if o in self.predinfo
-                                     and isinstance(obs, self.predinfo[o][1])):
+        and isinstance(obs, self.predinfo[o][1])):
             verify(not between(self.predinfo[obs2][0], obs, obs2),
-               '{1} violates the consecutivity constraint between {0} and {2}',
-               (self.predinfo[obs2][0], obs, obs2))
+                   '{1} violates the consecutivity constraint between {0} and {2}',
+                   (self.predinfo[obs2][0], obs, obs2))
 
     def verify_consecutivity_satisfaction(self, obs1, obs2, clazz):
         """
@@ -485,8 +486,8 @@ class Interpretation(object):
         udx = self.observations.bisect_left(dummy)
         for obs in self.observations.islice(idx, udx):
             verify(obs is obs2 or not isinstance(obs, clazz),
-            '{1} violates the consecutivity constraint between {0} and {2}',
-            (obs1, obs, obs2))
+                   '{1} violates the consecutivity constraint between {0} and {2}',
+                   (obs1, obs, obs2))
         hole = Observable()
         hole.start.value = Iv(obs1.lateend, obs1.lateend)
         hole.end.value = Iv(obs2.earlystart, obs2.earlystart)
@@ -496,7 +497,7 @@ class Interpretation(object):
                (obs1, other, obs2))
 
     def get_observations(self, clazz=Observable, start=0, end=np.inf,
-                                         filt=lambda obs: True, reverse=False):
+                         filt=lambda obs: True, reverse=False):
         """
         Obtains a list of observations matching the search criteria, ordered
         by the earliest time of the observation.
@@ -519,8 +520,8 @@ class Interpretation(object):
             Boolean parameter. If True, observations are returned in reversed
             order, from last to first.
         """
-        #We perform a combination of the observations from the global buffer
-        #and from the interpretation.
+        # We perform a combination of the observations from the global buffer
+        # and from the interpretation.
         geng = obsbuf.get_observations(clazz, start, end, filt, reverse)
         genl = self._get_proper_obs(clazz, start, end, filt, reverse)
         dummy = EventObservable()
@@ -542,20 +543,20 @@ class Interpretation(object):
         if time is None:
             time = max(self.past_metrics.time,
                        self.focus.earliest_time) - C.FORGET_TIMESPAN
-        #A minimum number of observations is kept
+        # A minimum number of observations is kept
         nmin = min(C.MIN_NOBS, len(self.observations))
         if nmin > 0:
             time = max(self.past_metrics.time,
-                       min(time, self.observations[-nmin].lateend-1))
+                       min(time, self.observations[-nmin].lateend - 1))
         dummy = EventObservable()
         dummy.end.value = Iv(time, time)
         nhyp = abst = abstime = 0.0
-        #Old observations are removed from all lists.
+        # Old observations are removed from all lists.
         for lstname in ('observations', 'abstracted', 'unintelligible'):
             lst = getattr(self, lstname)
             idx = lst.bisect_right(dummy)
             if (idx > 0 and self.parent is not None
-                    and getattr(self.parent, lstname) is lst):
+                and getattr(self.parent, lstname) is lst):
                 lst = lst.copy()
                 setattr(self, lstname, lst)
             if lstname == 'observations':
@@ -565,8 +566,8 @@ class Interpretation(object):
                               if ap.get_obs_level(type(o)) == 0)
                 abst = idx
             del lst[:idx]
-        self.past_metrics = PastMetrics(time, self.past_metrics.abst+abst,
-                                        self.past_metrics.abstime+abstime,
+        self.past_metrics = PastMetrics(time, self.past_metrics.abst + abst,
+                                        self.past_metrics.abstime + abstime,
                                         self.past_metrics.nhyp + nhyp)
 
     def recover_all(self):
@@ -582,15 +583,15 @@ class Interpretation(object):
             allobs |= set(interp.observations)
             interp = interp.parent
         allobs.update((o for o, p in self.focus._lst if p is not None
-                                                        and o is p.hypothesis))
+                       and o is p.hypothesis))
         allobs = sortedcontainers.SortedList(allobs)
-        #Duplicate removal (set only prevents same references, not equality)
+        # Duplicate removal (set only prevents same references, not equality)
         i = 0
-        while i < len(allobs)-1:
+        while i < len(allobs) - 1:
             obs = allobs[i]
-            while allobs[i+1] == obs:
-                allobs.pop(i+1)
-                if i == len(allobs)-1:
+            while allobs[i + 1] == obs:
+                allobs.pop(i + 1)
+                if i == len(allobs) - 1:
                     break
             i += 1
         self.observations = sortedcontainers.SortedList(allobs)
@@ -600,8 +601,8 @@ class Interpretation(object):
         Detachs this interpretation from the interpretations tree, being from
         that moment a new root.
         """
-        #Uncomment to debug.
-        #print str(self), reason
+        # Uncomment to debug.
+        # print str(self), reason
         if self.parent is not None:
             parent = self.parent
             parent.child.remove(self)

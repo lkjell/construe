@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Module defining Interval model and operations"""
-#ActiveState recipe 576816
+
+
+# ActiveState recipe 576816
 
 class Interval(object):
     """
@@ -16,7 +18,7 @@ class Interval(object):
         "Construct, start must be <= end."
         if start > end:
             raise ValueError('Start (%s) must not be greater than end (%s)'
-                              % (start, end))
+                             % (start, end))
         self._start = start
         self._end = end
 
@@ -30,32 +32,48 @@ class Interval(object):
         """The interval's end"""
         return self._end
 
-
     def __str__(self):
         "As string."
         return '[%s,%s]' % (self.start, self.end)
-
 
     def __repr__(self):
         "String representation."
         return '[%s,%s]' % (self.start, self.end)
 
+    # def __cmp__(self, other):
+    #     "Compare."
+    #     if None is other:
+    #         return 1
+    #     start_cmp = cmp(self.start, other.start)
+    #     if 0 != start_cmp:
+    #         return start_cmp
+    #     else:
+    #         return cmp(self.end, other.end)
 
-    def __cmp__(self, other):
-        "Compare."
-        if None == other:
-            return 1
-        start_cmp = cmp(self.start, other.start)
-        if 0 != start_cmp:
-            return start_cmp
+    def __lt__(self, other):
+        if self.start < other.start:
+            return True
         else:
-            return cmp(self.end, other.end)
+            return self.end < other.end
 
+    def __le__(self, other):
+        return (self < other) or (self == other)
+
+    def __gt__(self, other):
+        if self.start > other.start:
+            return True
+        else:
+            return self.end > other.end
+
+    def __ge__(self, other):
+        return self > other or self == other
+
+    def __eq__(self, other):
+        return (self.start == other.start) and (self.end == self.end)
 
     def __hash__(self):
         "Hash."
         return hash(self.start) ^ hash(self.end)
-
 
     def intersection(self, other):
         "Intersection. @return: An empty intersection if there is none."
@@ -85,7 +103,7 @@ class Interval(object):
 
     def move(self, offset):
         "@return: Interval displaced offset to start and end"
-        return Interval(self.start+offset, self.end+offset)
+        return Interval(self.start + offset, self.end + offset)
 
     def __contains__(self, item):
         "@return: True iff item in self."
@@ -96,11 +114,9 @@ class Interval(object):
         "@return: True iff 0 in self."
         return self.start <= 0 and 0 <= self.end
 
-
     def subset(self, other):
         "@return: True iff self is subset of other."
         return self.start >= other.start and self.end <= other.end
-
 
     def proper_subset(self, other):
         "@return: True iff self is proper subset of other."
@@ -121,7 +137,6 @@ class Interval(object):
         "@return: True iff self.end - self.start == 1."
         return self.end - self.start == 1
 
-
     def separation(self, other):
         "@return: The distance between self and other."
         if self > other:
@@ -130,5 +145,3 @@ class Interval(object):
             return 0
         else:
             return other.start - self.end
-
-

@@ -9,23 +9,25 @@ This module contains the definition of beat-related abstraction patterns.
 """
 
 from construe.model.automata import (PatternAutomata, ABSTRACTED, ENVIRONMENT,
-                                                                  BASIC_TCONST)
+                                     BASIC_TCONST)
 from construe.model import Interval as Iv
 from construe.utils.units_helper import msec2samples, samples2msec
 import construe.knowledge.constants as C
 import construe.knowledge.observables as o
 import numpy as np
 
-#Constant values to initialize the Kalman Filter for QT (actually RT) measure
-QT_ERR_STD = msec2samples(58) #Standard deviation of the QT error (R matrix)
-MIN_QT_STD = msec2samples(20) #Minimum standard deviation of the QT error
-KF_Q = msec2samples(40) #Dynamic noise of the Kalman filter (Q matrix)
-#Upper and lower limit of the RR intervals
+# Constant values to initialize the Kalman Filter for QT (actually RT) measure
+QT_ERR_STD = msec2samples(58)  # Standard deviation of the QT error (R matrix)
+MIN_QT_STD = msec2samples(20)  # Minimum standard deviation of the QT error
+KF_Q = msec2samples(40)  # Dynamic noise of the Kalman filter (Q matrix)
+# Upper and lower limit of the RR intervals
 RR_LIMITS = Iv(msec2samples(300), msec2samples(1200))
+
 
 def sp2sg(samples):
     """Converts a measure in samples to secods"""
-    return samples2msec(samples)/1000.0
+    return samples2msec(samples) / 1000.0
+
 
 def _envbeat_tconst(pattern, obs):
     """
@@ -37,12 +39,14 @@ def _envbeat_tconst(pattern, obs):
     if isinstance(obs, o.QRS) and isinstance(pattern.obs_seq[0], o.CardiacCycle):
         pattern.last_tnet.set_equal(pattern.obs_seq[0].time, obs.time)
 
+
 def _btime_tconst(pattern, qrs):
     """
     Temporal constraints for the abstracted QRS observation
     """
     BASIC_TCONST(pattern, qrs)
     pattern.last_tnet.set_equal(qrs.time, pattern.hypothesis.time)
+
 
 def _qrs_time_tconst(pattern, _):
     """
@@ -52,6 +56,7 @@ def _qrs_time_tconst(pattern, _):
     pattern.last_tnet.set_equal(qrs.start, pattern.hypothesis.start)
     pattern.last_tnet.set_equal(qrs.end, pattern.hypothesis.end)
 
+
 def _p_qrs_tconst(pattern, pwave):
     """
     Temporal constraints of the P Wave wrt the corresponding QRS complex
@@ -60,15 +65,16 @@ def _p_qrs_tconst(pattern, pwave):
     obseq = pattern.obs_seq
     idx = pattern.get_step(pwave)
     tnet = pattern.last_tnet
-    #Beat start
+    # Beat start
     tnet.set_equal(pwave.start, pattern.hypothesis.start)
     tnet.add_constraint(pwave.start, pwave.end, C.PW_DURATION)
-    if idx == 0 or not isinstance(obseq[idx-1], o.QRS):
+    if idx == 0 or not isinstance(obseq[idx - 1], o.QRS):
         return
-    qrs = obseq[idx-1]
-    #PR interval
+    qrs = obseq[idx - 1]
+    # PR interval
     tnet.add_constraint(pwave.start, qrs.start, C.N_PR_INTERVAL)
     tnet.set_before(pwave.end, qrs.start)
+
 
 def _t_qrs_tconst(pattern, twave):
     """
@@ -78,42 +84,43 @@ def _t_qrs_tconst(pattern, twave):
     obseq = pattern.obs_seq
     idx = pattern.get_step(twave)
     tnet = pattern.last_tnet
-    #Beat end
+    # Beat end
     tnet.set_equal(twave.end, pattern.hypothesis.end)
-    #We find the qrs observation precedent to this T wave.
+    # We find the qrs observation precedent to this T wave.
     try:
-        qrs = next(obseq[i] for i in xrange(idx-1, -1, -1)
-                                                if isinstance(obseq[i], o.QRS))
-        #If there is no P Wave, the beat start is the QRS start.
+        qrs = next(obseq[i] for i in range(idx - 1, -1, -1)
+                   if isinstance(obseq[i], o.QRS))
+        # If there is no P Wave, the beat start is the QRS start.
         if pattern.trseq[idx][0].istate in (1, 3):
             tnet.set_equal(qrs.start, pattern.hypothesis.start)
-        if idx > 0 and isinstance(obseq[idx-1], o.PWave):
-            pwave = obseq[idx-1]
+        if idx > 0 and isinstance(obseq[idx - 1], o.PWave):
+            pwave = obseq[idx - 1]
             tnet.add_constraint(pwave.end, twave.start, Iv(C.ST_INTERVAL.start,
-                                            C.PQ_INTERVAL.end + C.QRS_DUR.end))
-        #ST interval
+                                                           C.PQ_INTERVAL.end + C.QRS_DUR.end))
+        # ST interval
         tnet.add_constraint(qrs.end, twave.start, C.ST_INTERVAL)
-        #QT duration
+        # QT duration
         tnet.add_constraint(qrs.start, twave.end, C.N_QT_INTERVAL)
-        #If we observed a previous QRS complex, we set a limit for the QT
-        #interval according to the RR and to the previous measures.
+        # If we observed a previous QRS complex, we set a limit for the QT
+        # interval according to the RR and to the previous measures.
         if isinstance(obseq[1], o.QRS):
-            rr = qrs.time.start-obseq[1].time.start
+            rr = qrs.time.start - obseq[1].time.start
             rr = max(min(rr, RR_LIMITS.end), RR_LIMITS.start)
             rtc, rtstd = obseq[0].meas.rt
             if rtc > 0:
-                #Expected QT value from the QT corrected value
-                rtmean = msec2samples(1000.0*sp2sg(rtc)*np.cbrt(sp2sg(rr)))
-                tnet.add_constraint(qrs.time, twave.end, Iv(rtmean-2.5*rtstd,
-                                                            rtmean+2.5*rtstd))
-            #The PR interval is also included to limit the T wave duration
+                # Expected QT value from the QT corrected value
+                rtmean = msec2samples(1000.0 * sp2sg(rtc) * np.cbrt(sp2sg(rr)))
+                tnet.add_constraint(qrs.time, twave.end, Iv(rtmean - 2.5 * rtstd,
+                                                            rtmean + 2.5 * rtstd))
+            # The PR interval is also included to limit the T wave duration
             pr = obseq[0].meas.pq[0]
             try:
-                tnet.add_constraint(qrs.time, twave.end, Iv(0, rr-pr))
+                tnet.add_constraint(qrs.time, twave.end, Iv(0, rr - pr))
             except ValueError:
                 pass
     except StopIteration:
         pass
+
 
 def _firstbeat_gconst(pattern, twave):
     """General constraints for the first beat, to obtain the first measure"""
@@ -124,45 +131,46 @@ def _firstbeat_gconst(pattern, twave):
     pattern.hypothesis.meas = o.CycleMeasurements((0.0, 0.0), (rt, QT_ERR_STD),
                                                   (0.0, 0.0))
 
+
 def _cycle_gconst(pattern, twave):
     """
     General constraints applied after all the evidence of a heartbeat has
     been observed. The Kalman filter update for the QT limits is performed in
     this function.
     """
-    #Belief values
+    # Belief values
     rtmean, rtstd = pattern.obs_seq[0].meas.rt
-    #Current RR measure (bounded)
+    # Current RR measure (bounded)
     qrs = pattern.obs_seq[2]
     rr = qrs.time.start - pattern.obs_seq[1].time.start
     rr = max(min(rr, RR_LIMITS.end), RR_LIMITS.start)
-    #Kalman filter algorithm, as explained in "Probabilistic Robotics"
-    sigma_tbar = rtstd**2 + KF_Q**2
+    # Kalman filter algorithm, as explained in "Probabilistic Robotics"
+    sigma_tbar = rtstd ** 2 + KF_Q ** 2
     if twave is not None:
-        #rt and corrected rt measure in the current iteration
+        # rt and corrected rt measure in the current iteration
         rt = twave.earlyend - qrs.time.start
-        rtc = msec2samples(1000.0*sp2sg(rt)/np.cbrt(sp2sg(rr)))
-        meas_err = rtc-rtmean
-        #Abnormally QT intervals have associated higher uncertainty
+        rtc = msec2samples(1000.0 * sp2sg(rt) / np.cbrt(sp2sg(rr)))
+        meas_err = rtc - rtmean
+        # Abnormally QT intervals have associated higher uncertainty
         qt = twave.earlyend - qrs.earlystart
         qt_lims = C.QT_FROM_RR(Iv(rr, rr))
-        #Measure uncertainty, represented by the R matrix in the Kalman filter
+        # Measure uncertainty, represented by the R matrix in the Kalman filter
         KF_R = meas_err if qt in qt_lims else msec2samples(120)
-        k_t = sigma_tbar/(sigma_tbar + max(KF_R, MIN_QT_STD)**2)
+        k_t = sigma_tbar / (sigma_tbar + max(KF_R, MIN_QT_STD) ** 2)
     else:
-        #No measure - 0 Kalman gain
+        # No measure - 0 Kalman gain
         meas_err = QT_ERR_STD
         k_t = 0
-    mu_t = rtmean + k_t*meas_err
-    sigma_t = (1.0-k_t)*sigma_tbar
-    #PR interval
+    mu_t = rtmean + k_t * meas_err
+    sigma_t = (1.0 - k_t) * sigma_tbar
+    # PR interval
     pr = 0.0
     if isinstance(pattern.obs_seq[3], o.PWave):
         pr = qrs.time.start - pattern.obs_seq[3].earlystart
         prmean = pattern.obs_seq[0].meas.pq[0]
-        pr = (pr+prmean)/2 if prmean > 0 else pr
+        pr = (pr + prmean) / 2 if prmean > 0 else pr
     pattern.hypothesis.meas = o.CycleMeasurements((rr, 0.0),
-                                          (mu_t, np.sqrt(sigma_t)), (pr, 0.0))
+                                                  (mu_t, np.sqrt(sigma_t)), (pr, 0.0))
 
 
 FIRST_BEAT_PATTERN = PatternAutomata()

@@ -15,6 +15,7 @@ from ..model.observable import overlap, end_cmp_key
 import sortedcontainers
 import numpy as np
 
+
 class Status(object):
     """
     This enum-like class defines the possible status of the observations
@@ -23,8 +24,10 @@ class Status(object):
     STOPPED = 0
     ACQUIRING = 1
 
+
 _OBS = sortedcontainers.SortedList(key=end_cmp_key)
 _STATUS = Status.STOPPED
+
 
 def reset():
     """Resets the observations buffer."""
@@ -41,12 +44,12 @@ def publish_observation(observation):
     """
     if _OBS.bisect(observation) < len(_OBS):
         raise ValueError(
-              'The global observations buffer only accepts ordered insertions')
+            'The global observations buffer only accepts ordered insertions')
     _OBS.add(observation)
 
 
 def get_observations(clazz=Observable, start=0, end=np.inf,
-                                         filt=lambda obs: True, reverse=False):
+                     filt=lambda obs: True, reverse=False):
     """
     Obtains a list of observations matching the search criteria, ordered
     by the earliest time of the observation.
@@ -75,7 +78,7 @@ def get_observations(clazz=Observable, start=0, end=np.inf,
     else:
         dummy.time.value = Iv(start, start)
         idx = _OBS.bisect_left(dummy)
-    if end ==np.inf:
+    if end == np.inf:
         udx = len(_OBS)
     else:
         dummy.time.value = Iv(end, end)
@@ -83,9 +86,11 @@ def get_observations(clazz=Observable, start=0, end=np.inf,
     return (obs for obs in _OBS.islice(idx, udx, reverse)
             if obs.earlystart >= start and isinstance(obs, clazz) and filt(obs))
 
+
 def contains_observation(observation):
     """Checks if an observation is in the observations buffer"""
     return observation in _OBS
+
 
 def nobs_before(time):
     """
@@ -95,6 +100,7 @@ def nobs_before(time):
     dummy = EventObservable()
     dummy.time.value = Iv(time, time)
     return _OBS.bisect_right(dummy)
+
 
 def find_overlapping(observation, clazz=Observable):
     """
@@ -116,9 +122,11 @@ def find_overlapping(observation, clazz=Observable):
         idx += 1
     return None
 
+
 def get_status():
     """Obtains the status of the observations buffer"""
     return _STATUS
+
 
 def set_status(status):
     """Changes the status of the observations buffer"""

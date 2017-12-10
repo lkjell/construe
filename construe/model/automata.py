@@ -16,17 +16,19 @@ from .constraint_network import verify
 from collections import defaultdict
 import itertools as it
 
-
 ABSTRACTED = True
 ENVIRONMENT = False
+
 
 def NULL_CONST(pattern, obs):
     """Default constraint definition"""
     return None
 
+
 def NULL_PROC(pattern):
     """Default observation procedure"""
     return None
+
 
 def BASIC_TCONST(pattern, obs):
     """
@@ -52,8 +54,8 @@ class Transition(FreezableObject):
                  'gconst')
 
     def __init__(self, istate=None, fstate=None, observable=None,
-                       abstracted=ABSTRACTED, tconst=BASIC_TCONST,
-                                                            gconst=NULL_CONST):
+                 abstracted=ABSTRACTED, tconst=BASIC_TCONST,
+                 gconst=NULL_CONST):
         """
         Creates a new transition that can be added to a DFA definition. All the
         attributes of the transition must be set on the creation, and no
@@ -94,15 +96,14 @@ class Transition(FreezableObject):
         self.abstracted = abstracted
         self.tconst = tconst
         self.gconst = gconst
-        #We don't allow any posterior modification of a transition.
+        # We don't allow any posterior modification of a transition.
         self.freeze()
-
 
     def __str__(self):
         """Obtains the representation of a transition as a string"""
         return '{0} --{1}{2}--> {3}'.format(self.istate, self.observable,
-                                 '@' if self.abstracted == ABSTRACTED else '#',
-                                                                   self.fstate)
+                                            '@' if self.abstracted == ABSTRACTED else '#',
+                                            self.fstate)
 
     def __repr__(self):
         return str(self)
@@ -157,13 +158,13 @@ class PatternAutomata(FreezableObject):
     def freeze(self):
         """We override the freeze method to check additional constraints"""
         verify(self.final_states, 'The automata does not have any final state')
-        #We use a tuple to avoid posterior changes on the transitions
+        # We use a tuple to avoid posterior changes on the transitions
         self.transitions = tuple(self.transitions)
         super(PatternAutomata, self).freeze()
 
     def add_transition(self, istate=None, fstate=None, observable=None,
-                             abstracted=ABSTRACTED, tconst=NULL_CONST,
-                                                            gconst=NULL_CONST):
+                       abstracted=ABSTRACTED, tconst=NULL_CONST,
+                       gconst=NULL_CONST):
         """
         Adds a new *Transition* to this automata.
 
@@ -193,10 +194,10 @@ class PatternAutomata(FreezableObject):
         """
         assert abstracted in (ABSTRACTED, ENVIRONMENT), 'Invalid abstraction'
         transition = Transition(istate, fstate, observable, abstracted, tconst,
-                                                                        gconst)
+                                gconst)
         self.transitions.append(transition)
-        #All states (except the initial one) must be reached by at least one
-        #transition.
+        # All states (except the initial one) must be reached by at least one
+        # transition.
         for state in self.states:
             if state != self.start_state:
                 verify(self.tr_to(state))
@@ -205,7 +206,7 @@ class PatternAutomata(FreezableObject):
     def states(self):
         """Obtains the set of states of this automata"""
         return set(it.chain.from_iterable((t.istate, t.fstate)
-                                                    for t in self.transitions))
+                                          for t in self.transitions))
 
     @property
     def start_state(self):
@@ -218,7 +219,7 @@ class PatternAutomata(FreezableObject):
     def abstracted(self):
         """Obtains the set of observables abstracted by this pattern"""
         return {t.observable for t in self.transitions
-                    if t.abstracted is ABSTRACTED and t.observable is not None}
+                if t.abstracted is ABSTRACTED and t.observable is not None}
 
     @property
     def environment(self):
@@ -227,7 +228,8 @@ class PatternAutomata(FreezableObject):
         pattern.
         """
         return {t.observable for t in self.transitions
-                   if t.abstracted is ENVIRONMENT and t.observable is not None}
+                if t.abstracted is ENVIRONMENT and t.observable is not None}
+
     @property
     def manifestations(self):
         """
@@ -249,8 +251,9 @@ class PatternAutomata(FreezableObject):
         """
         return [t for t in self.transitions if t.fstate == state]
 
+
 if __name__ == "__main__":
-    #Small test for automata creation.
+    # Small test for automata creation.
     DFA = PatternAutomata()
     DFA.add_transition('S', 'A', 'a', ENVIRONMENT)
     DFA.add_transition('A', 'A', 'a')

@@ -14,6 +14,6 @@ cat <<EOF
     Example: ~$ $0 fig3
 EOF
 else
-  echo "Running: python -i fragment_processing.py -r examples/$1"
-  WFDB=`pwd` python -i fragment_processing.py -r examples/$1
+  echo "Running: python3 -i fragment_processing.py -r examples/$1"
+  WFDB=`pwd` python3 -i fragment_processing.py -r examples/$1
 fi

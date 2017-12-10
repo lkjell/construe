@@ -10,6 +10,7 @@ signal, and permits to obtain the relevant observations on demand.
 import pywt
 import numpy as np
 
+
 def get_filter_energy(signal, levels=None, N=256):
     """
     Obtains the energy sigal of the wavelet filter used fot the segmentation.
@@ -27,16 +28,16 @@ def get_filter_energy(signal, levels=None, N=256):
     if len(signal) < N:
         raise ValueError('Signal length must be >= N')
     filtered_signal = np.empty_like(signal)
-    #Wavelet to use (Daubechies 1 o Haar)
+    # Wavelet to use (Daubechies 1 o Haar)
     wavelet = pywt.Wavelet('haar')
-    #Filtering in N-length fragments
+    # Filtering in N-length fragments
     findex = 0
-    while findex*N < len(signal):
-        filtered_signal[findex*N : (findex+1) * N] = __apply_filter(
-                                            signal[findex*N : (findex+1) * N],
-                                                               wavelet, levels)
-        findex = findex+1
-    #The energy is the area
+    while findex * N < len(signal):
+        filtered_signal[findex * N: (findex + 1) * N] = __apply_filter(
+            signal[findex * N: (findex + 1) * N],
+            wavelet, levels)
+        findex = findex + 1
+    # The energy is the area
     return filtered_signal ** 2
 
 
@@ -55,7 +56,7 @@ def __apply_filter(signal, wavelet, levels):
         Levels used for the reconstruction of the signal.
     """
     coeffs = pywt.wavedec(signal, wavelet)
-    for i in xrange(len(coeffs)):
+    for i in range(len(coeffs)):
         if not i in levels:
             coeffs[i] = np.zeros(len(coeffs[i]))
     return pywt.waverec(coeffs, wavelet)
