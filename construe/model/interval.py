@@ -40,36 +40,36 @@ class Interval(object):
         "String representation."
         return '[%s,%s]' % (self.start, self.end)
 
-    # def __cmp__(self, other):
-    #     "Compare."
-    #     if None is other:
-    #         return 1
-    #     start_cmp = cmp(self.start, other.start)
-    #     if 0 != start_cmp:
-    #         return start_cmp
-    #     else:
-    #         return cmp(self.end, other.end)
-
+    # See definition 5 in reference paper.
     def __lt__(self, other):
-        if self.start < other.start:
-            return True
-        else:
-            return self.end < other.end
+        if other is None:
+            return False
+
+        A = (self.start < other.start)
+        B = (self.start == other.start) and (self.end < other.end)
+
+        return A or B
 
     def __le__(self, other):
-        return (self < other) or (self == other)
+        return self < other or self == other
 
     def __gt__(self, other):
-        if self.start > other.start:
+        if other is None:
             return True
-        else:
-            return self.end > other.end
+
+        A = (self.start > other.start)
+        B = (self.start == other.start) and (self.end > other.end)
+
+        return A or B
 
     def __ge__(self, other):
         return self > other or self == other
 
     def __eq__(self, other):
-        return (self.start == other.start) and (self.end == self.end)
+        if other is None:
+            return False
+
+        return (self.start == other.start) and (self.end == other.end)
 
     def __hash__(self):
         "Hash."
