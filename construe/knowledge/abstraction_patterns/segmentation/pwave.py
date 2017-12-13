@@ -8,6 +8,7 @@ This module contains the definition of the P wave abstraction pattern.
 @author: T. Teijeiro
 """
 
+from pathlib import Path
 import construe.knowledge.observables as o
 import construe.utils.signal_processing.Douglas_Peucker as DP
 import construe.knowledge.constants as C
@@ -1877,4 +1878,16 @@ _PREC_STR = ('ccopy_reg\n_reconstructor\np0\n(csklearn.svm.classes\nOneClassSV'
              "01\nRp102\n(I1\n(I0\ntp103\ng35\nI00\ng48\ntp104\nbsS'cache_size'\np10"
              "5\nI200\nsS'gamma'\np106\nF0.0\nsb.")
 
-_CLASSIFIERS = [pickle.loads(_LIMB_STR), pickle.loads(_PREC_STR)]
+
+_path = Path(__file__)
+_path = _path.resolve().parent
+_limb_path = _path.joinpath("limb.pickle")
+_prec_path = _path.joinpath("prec.pickle")
+
+with _limb_path.open("rb") as f:
+    _LIMB_CLS = pickle.load(f)
+
+with _prec_path.open("rb") as f:
+    _PREC_CLS = pickle.load(f)
+
+_CLASSIFIERS = [_LIMB_CLS, _PREC_CLS]
