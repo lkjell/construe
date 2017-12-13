@@ -88,8 +88,8 @@ while cntr.best is None:
         print((fstr.format(int(cntr.last_time), acq_time)))
     # End of debug code
     filt = ((lambda n: acq_time + n[0][2] >= MIN_DELAY)
-    if obs_buffer.get_status() is obs_buffer.Status.ACQUIRING
-    else (lambda _: True))
+            if obs_buffer.get_status() is obs_buffer.Status.ACQUIRING
+            else (lambda _: True))
     cntr.step(filt)
     if cntr.last_time > ltime[0]:
         ltime = (cntr.last_time, time.time())
@@ -98,12 +98,12 @@ while cntr.best is None:
     if ms2sp((time.time() - ltime[1]) * 1000.0) * TFACTOR > MAX_DELAY:
         print('Pruning search')
         cntr.prune()
-print(('Finished in {0:.3f} seconds'.format(time.time() - t0)))
-print(('Created {0} interpretations ({1} kept alive)'.format(interp.counter,
-                                                             interp.ndescendants)))
+print('Finished in {0:.3f} seconds'.format(time.time() - t0))
+print('Created {0} interpretations ({1} kept alive)'.format(interp.counter,
+                                                            interp.ndescendants))
 
 # Best explanation
-print((cntr.best))
+print(cntr.best)
 be = cntr.best.node
 be.recover_all()
 # print('List of resulting observations:')
