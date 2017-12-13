@@ -99,6 +99,9 @@ class FreezableObject(object, metaclass=FreezableMeta):
                 return True
         return False
 
+    def __hash__(self):
+        return id(self)
+
 
 def clone_attrs(obs, ref):
     """
