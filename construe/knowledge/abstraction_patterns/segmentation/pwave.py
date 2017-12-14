@@ -22,6 +22,8 @@ from construe.model.automata import (PatternAutomata, ABSTRACTED,
 import numpy as np
 import pickle
 import sklearn.preprocessing as preproc
+import json
+from sklearn.svm import OneClassSVM
 
 
 ####################################################
@@ -161,7 +163,7 @@ def _p_gconst(pattern, defl):
     """
     pwave = pattern.hypothesis
     if ((defl is not None and defl.earlystart != defl.latestart)
-        or not pattern.evidence[o.QRS]):
+            or not pattern.evidence[o.QRS]):
         return
     qrs = pattern.evidence[o.QRS][0]
     beg = pwave.earlystart
@@ -1878,12 +1880,10 @@ _PREC_STR = ('ccopy_reg\n_reconstructor\np0\n(csklearn.svm.classes\nOneClassSV'
              "01\nRp102\n(I1\n(I0\ntp103\ng35\nI00\ng48\ntp104\nbsS'cache_size'\np10"
              "5\nI200\nsS'gamma'\np106\nF0.0\nsb.")
 
-
 _path = Path(__file__)
 _path = _path.resolve().parent
 _limb_path = _path.joinpath("limb.json")
 _prec_path = _path.joinpath("prec.json")
-import json
 
 with _limb_path.open("r") as f:
     limb = json.load(f)
@@ -1892,9 +1892,6 @@ with _limb_path.open("r") as f:
 with _prec_path.open("r") as f:
     prec = json.load(f)
     # _PREC_CLS = pickle.load(f, encoding="bytes")
-
-
-from sklearn.svm import OneClassSVM
 
 _LIMB_CLS = OneClassSVM()
 _LIMB_CLS.set_params(**limb["params"])

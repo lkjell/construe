@@ -106,15 +106,15 @@ print('Created {0} interpretations ({1} kept alive)'.format(interp.counter,
 print(cntr.best)
 be = cntr.best.node
 be.recover_all()
-# print('List of resulting observations:')
-# pp(list(be.get_observations()))
+print('List of resulting observations:')
+pp(list(be.get_observations()))
 
-# Drawing of the best explanation
-# brview = plotter.plot_observations(sig_buf.get_signal(
-#                                         sig_buf.get_available_leads()[0]), be)
-##Drawing of the search tree
-# label_fncs = {}
-# label_fncs['n'] = lambda br: str(br)
-# label_fncs['e'] = lambda br: ''
-# brview = plotter.plot_branch(interp, label_funcs=label_fncs, target=be,
-#                             full_tree=True)
+#Drawing of the best explanation
+brview = plotter.plot_observations(sig_buf.get_signal(
+                                         sig_buf.get_available_leads()[0]), be)
+#Drawing of the search tree
+label_fncs = {}
+label_fncs['n'] = lambda br: str(br)
+label_fncs['e'] = lambda br: ''
+brview = plotter.plot_branch(interp, label_funcs=label_fncs, target=be,
+                         full_tree=True)
