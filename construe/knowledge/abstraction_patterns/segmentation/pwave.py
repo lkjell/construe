@@ -1881,13 +1881,49 @@ _PREC_STR = ('ccopy_reg\n_reconstructor\np0\n(csklearn.svm.classes\nOneClassSV'
 
 _path = Path(__file__)
 _path = _path.resolve().parent
-_limb_path = _path.joinpath("limb.pickle")
-_prec_path = _path.joinpath("prec.pickle")
+_limb_path = _path.joinpath("limb.json")
+_prec_path = _path.joinpath("prec.json")
+import json
 
-with _limb_path.open("rb") as f:
-    _LIMB_CLS = pickle.load(f)
+with _limb_path.open("r") as f:
+    limb = json.load(f)
+    # _LIMB_CLS = pickle.load(f, encoding="bytes")
 
-with _prec_path.open("rb") as f:
-    _PREC_CLS = pickle.load(f)
+with _prec_path.open("r") as f:
+    prec = json.load(f)
+    # _PREC_CLS = pickle.load(f, encoding="bytes")
+
+
+from sklearn.svm import OneClassSVM
+
+_LIMB_CLS = OneClassSVM()
+_LIMB_CLS.set_params(**limb["params"])
+_LIMB_CLS.intercept_ = np.array(limb["intercept"])
+_LIMB_CLS._intercept_ = np.array(limb["_intercept_"])
+_LIMB_CLS.dual_coef_ = np.array(limb["dual_coef"])
+_LIMB_CLS._dual_coef_ = np.array(limb["_dual_coef_"])
+_LIMB_CLS.support_vectors_ = np.array(limb["support_vectors"])
+_LIMB_CLS.support_ = np.array(limb["support"], dtype=np.int32)
+_LIMB_CLS._sparse = limb["sparse"]
+_LIMB_CLS.shape_fit_ = limb["shape_fit"]
+_LIMB_CLS.n_support_ = np.array(limb["n_support"], dtype=np.int32)
+_LIMB_CLS.probA_ = np.array(limb["probA"])
+_LIMB_CLS.probB_ = np.array(limb["probB"])
+_LIMB_CLS._gamma = limb["gamma"]
+
+_PREC_CLS = OneClassSVM()
+_PREC_CLS.set_params(**prec["params"])
+_PREC_CLS.intercept_ = np.array(prec["intercept"])
+_PREC_CLS._intercept_ = np.array(prec["_intercept_"])
+_PREC_CLS.dual_coef_ = np.array(prec["dual_coef"])
+_PREC_CLS._dual_coef_ = np.array(prec["_dual_coef_"])
+_PREC_CLS.support_vectors_ = np.array(prec["support_vectors"])
+_PREC_CLS.support_ = np.array(prec["support"], dtype=np.int32)
+_PREC_CLS._sparse = prec["sparse"]
+_PREC_CLS.shape_fit_ = prec["shape_fit"]
+_PREC_CLS.n_support_ = np.array(prec["n_support"], dtype=np.int32)
+_PREC_CLS.probA_ = np.array(prec["probA"])
+_PREC_CLS.probB_ = np.array(prec["probB"])
+_PREC_CLS._gamma = prec["gamma"]
 
 _CLASSIFIERS = [_LIMB_CLS, _PREC_CLS]
