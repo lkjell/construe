@@ -2,7 +2,8 @@ from collections import Hashable
 import copy
 from unittest import TestCase
 
-from construe.model import FreezableObject, Interval, Variable, ConstraintNetwork
+from construe.model import (FreezableObject, Interval,
+                            Variable, ConstraintNetwork, Observable, EventObservable)
 
 
 class FreezableTest(FreezableObject):
@@ -574,3 +575,25 @@ class TestConstraintNetWork(TestCase):
         assert not nw.contains_variable(v0)
         assert nw.contains_variable(v1)
         assert nw.contains_variable(v2)
+
+
+class TestObservable(TestCase):
+    def test_observable(self):
+        o1 = Observable()
+        o2 = Observable()
+        o3 = Observable()
+        o4 = Observable()
+        e = EventObservable()
+        o1.start.value = Interval(2, 4)
+        o1.end.value = Interval(6, 6)
+        o2.start.value = Interval(8, 12)
+        o2.end.value = Interval(9, 14)
+        o3.start.value = Interval(3, 4)
+        o3.end.value = Interval(4, 5)
+        o4.start.value = Interval(4, 5)
+        o4.end.value = Interval(7, 9)
+        e.time.value = Interval(10, 10)
+        assert o1 < o2
+        assert o1 < o3
+        assert o1 < o4
+        assert o2 < e
