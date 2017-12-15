@@ -468,7 +468,7 @@ class TestConstraintNetWork(TestCase):
         assert v3.value == Interval(20, 30)
         assert v4.value == Interval(60, 70)
 
-        # Testing if a stricker constraint is applied
+        # Testing if a stricter constraint is applied
         v0, v1, v2, v3, v4 = [Variable() for _ in range(5)]
         v0.value = Interval(0, 0)
         nw = ConstraintNetwork()
@@ -517,3 +517,60 @@ class TestConstraintNetWork(TestCase):
         nw.set_between(v2, v1, v0)
         nw.minimize_network()
         assert v2 <= v1 <= v0
+
+    def test_get_constaint(self):
+        v0 = Variable(Interval(0, 10))
+        v1 = Variable(Interval(7, 15))
+
+        nw = ConstraintNetwork()
+        nw.add_constraint(v0, v1, Interval(0, 4))
+        constraint = nw.get_constraint(v0, v1)
+        assert constraint.va == v0
+        assert constraint.va is v0
+
+        assert constraint.vb == v1
+        assert constraint.vb is v1
+        assert constraint.constraint == Interval(0, 4)
+
+        nw.minimize_network()
+        constraint = nw.get_constraint(v0, v1)
+        assert constraint.va == v0
+        assert constraint.va is v0
+
+        assert constraint.vb == v1
+        assert constraint.vb is v1
+        assert constraint.constraint == Interval(0, 4)
+        assert v0.start == 3
+        assert v0.end == 10
+        assert v1.start == 7
+        assert v1.end == 14
+
+    def test_get_constraints(self):
+        var = [Variable(Interval(0, x)) for x in range(100)]
+
+        nw = ConstraintNetwork()
+        for k in range(len(var) - 1):
+            nw.add_constraint(var[k], var[k + 1], Interval(-k, k))
+
+        s = set(nw.get_constraints())
+        assert len(s) == 99
+
+    def test_remove_constraint(self):
+        v0 = Variable()
+        v1 = Variable()
+        v2 = Variable()
+
+        nw = ConstraintNetwork()
+        nw.add_constraint(v0, v1, Interval(0, 10))
+        nw.remove_constraint(v0, v1)
+        assert len(nw.get_constraints()) == 0
+        assert not nw.contains_variable(v0)
+        assert not nw.contains_variable(v1)
+
+        nw.add_constraint(v0, v1, Interval(0, 10))
+        nw.add_constraint(v1, v2, Interval(0, 10))
+        nw.remove_constraint(v1, v0)
+        assert len(nw.get_constraints()) == 1
+        assert not nw.contains_variable(v0)
+        assert nw.contains_variable(v1)
+        assert nw.contains_variable(v2)
