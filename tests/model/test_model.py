@@ -508,7 +508,7 @@ class TestConstraintNetWork(TestCase):
         nw = ConstraintNetwork()
         nw.set_between(v0, v1, v2)
         nw.minimize_network()
-        assert v0 <= v1 <= v2
+        assert v0.value <= v1.value <= v2.value
 
         v0 = Variable(Interval(0, 10))
         v1 = Variable(Interval(7, 15))
@@ -517,7 +517,7 @@ class TestConstraintNetWork(TestCase):
         nw = ConstraintNetwork()
         nw.set_between(v2, v1, v0)
         nw.minimize_network()
-        assert v2 <= v1 <= v0
+        assert v2.value <= v1.value <= v0.value
 
     def test_get_constaint(self):
         v0 = Variable(Interval(0, 10))

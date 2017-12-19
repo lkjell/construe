@@ -320,7 +320,10 @@ class ConstraintNetwork(object):
         """
         Returns a list with all the constraint in this network.
         """
-        return list(set.union(*list(self._constr.values())))
+        if self._constr.values():
+            return list(set.union(*list(self._constr.values())))
+        else:
+            return []
 
     def substitute_variable(self, old, new):
         """
